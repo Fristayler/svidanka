@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Приглашаю на свидание 💌</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;600;700&family=Caveat:wght@600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-cream: #fdf8f5;
+            --rose-soft: #fce7f3;
+            --berry: #9d174d;
+            --warm-orange: #ea580c;
+            --forest-green: #15803d;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #fff5f5 0%, #fef6e4 50%, #fce7f3 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #4a3531;
+        }
+
+        h1, h2, h3, .font-title {
+            font-family: 'Comfortaa', cursive;
+        }
+
+        .font-handwriting {
+            font-family: 'Caveat', cursive;
+        }
+
+        /* Парящие сердечки и звездочки на фоне */
+        .floating-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .floating-item {
+            position: absolute;
+            bottom: -50px;
+            animation: floatUp linear infinite;
+            opacity: 0.55;
+            user-select: none;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) rotate(0deg) scale(0.8);
+                opacity: 0;
+            }
+            15% {
+                opacity: 0.65;
+            }
+            85% {
+                opacity: 0.65;
+            }
+            100% {
+                transform: translateY(-110vh) rotate(360deg) scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        /* Стеклянный эффект для карточек */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 12px 32px -8px rgba(157, 23, 77, 0.12);
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 18px 36px -8px rgba(236, 72, 153, 0.22);
+        }
+
+        .event-card.selected {
+            border-color: #ec4899;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(253, 242, 248, 0.96));
+            box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.25), 0 16px 32px -8px rgba(236, 72, 153, 0.25);
+        }
+
+        /* Анимация котика и часиков */
+        @keyframes catBounce {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-4px) rotate(1deg); }
+        }
+        .cat-character {
+            animation: catBounce 3.5s ease-in-out infinite;
+        }
+
+        @keyframes pulseHeart {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.12); }
+        }
+        .pulse-heart {
+            animation: pulseHeart 1.8s ease-in-out infinite;
+        }
+
+        /* Билетик с перфорацией */
+        .ticket-card {
+            position: relative;
+            background: #fffdf9;
+            border: 2px dashed #f472b6;
+        }
+        .ticket-card::before,
+        .ticket-card::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 24px;
+            height: 24px;
+            background: #fdf2f8;
+            border-radius: 50%;
+            transform: translateY(-50%);
+        }
+        .ticket-card::before {
+            left: -14px;
+            border-right: 2px dashed #f472b6;
+        }
+        .ticket-card::after {
+            right: -14px;
+            border-left: 2px dashed #f472b6;
+        }
+
+        /* Пользовательский фон, если загружено фото */
+        #custom-bg-layer {
+            position: fixed;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.18;
+            pointer-events: none;
+            z-index: 0;
+            transition: opacity 0.5s ease;
+        }
+    </style>
+</head>
+<body class="relative pb-20 selection:bg-pink-200 selection:text-pink-900">
+
+    <!-- Слой для пользовательского фонового фото -->
+    <div id="custom-bg-layer"></div>
+
+    <!-- Парящие романтичные элементы -->
+    <div class="floating-bg" id="floating-container"></div>
+
+    <!-- Верхняя панель для быстрой настройки фото / ссылки -->
+    <div class="relative z-20 max-w-2xl mx-auto pt-4 px-4 flex justify-between items-center text-xs text-rose-700/75">
+        <div class="flex items-center gap-1.5 bg-white/70 backdrop-blur px-3 py-1.5 rounded-full shadow-sm border border-pink-100">
+            <span>💌</span>
+            <span>Особенное приглашение для тебя</span>
+        </div>
+        <button onclick="togglePhotoModal()" class="bg-white/80 hover:bg-white text-rose-700 px-3 py-1.5 rounded-full shadow-sm border border-pink-200 transition flex items-center gap-1.5 font-semibold">
+            <span>🖼️</span>
+            <span>Фон / Открытка</span>
+        </button>
+    </div>
+
+    <!-- Основной контейнер -->
+    <main class="relative z-10 max-w-2xl mx-auto px-4 pt-4 pb-12">
+
+        <!-- Главная открытка в стиле приложенной иллюстрации (Котик с букетом под часами) -->
+        <section class="glass-card rounded-3xl p-5 sm:p-7 mb-8 text-center relative overflow-hidden">
+            <!-- Декоративное свечение -->
+            <div class="absolute -top-12 -right-12 w-36 h-36 bg-pink-200/40 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -bottom-12 -left-12 w-36 h-36 bg-amber-200/40 rounded-full blur-2xl pointer-events-none"></div>
+
+            <!-- Контейнер иллюстрации (SVG в точном стиле картинки + возможность заменить на загруженное фото) -->
+            <div class="relative mx-auto max-w-md rounded-2xl overflow-hidden border-2 border-amber-200/80 shadow-md bg-[#faf6ea] mb-6">
+                
+                <!-- Загруженное пользователем фото (скрыто по умолчанию, пока не выбрано) -->
+                <img id="user-postcard-img" src="" alt="Приглашаю на свидание" class="hidden w-full max-h-80 object-cover">
+
+                <!-- Встроенная авторская иллюстрация по мотивам вашего фото (рыжий котик с букетом под часами) -->
+                <div id="illustrated-postcard" class="w-full p-2 sm:p-4">
+                    <svg viewBox="0 0 420 330" class="w-full h-auto rounded-xl" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#fdfbf2"/>
+                                <stop offset="75%" stop-color="#f7f1de"/>
+                                <stop offset="100%" stop-color="#f3d778"/>
+                            </linearGradient>
+                            <linearGradient id="groundGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#f59e0b"/>
+                                <stop offset="100%" stop-color="#d97706"/>
+                            </linearGradient>
+                        </defs>
+
+                        <!-- Фон открытки -->
+                        <rect width="420" height="330" fill="url(#skyGrad)"/>
+
+                        <!-- Теплая желто-охристая мостовая внизу -->
+                        <path d="M 0 265 Q 190 258 420 262 L 420 330 L 0 330 Z" fill="url(#groundGrad)" stroke="#451a03" stroke-width="2.5"/>
+                        <path d="M 45 275 L 95 273 M 240 278 L 310 275 M 150 305 L 220 305" stroke="#b45309" stroke-width="2" stroke-linecap="round"/>
+
+                        <!-- Уличный фонарный столб с завитушкой и часами слева -->
+                        <!-- Тумба столба -->
+                        <rect x="8" y="235" width="34" height="90" fill="#d9d7b6" stroke="#292524" stroke-width="3"/>
+                        <line x1="8" y1="242" x2="42" y2="242" stroke="#292524" stroke-width="2.5"/>
+                        <!-- Изогнутый столб с завитушкой -->
+                        <path d="M 22 235 L 18 75 C 18 18, 95 10, 118 45 C 130 65, 100 85, 92 68 C 87 58, 102 48, 108 55" 
+                              fill="none" stroke="#857f28" stroke-width="10" stroke-linecap="round"/>
+                        <path d="M 22 235 L 18 75 C 18 18, 95 10, 118 45 C 130 65, 100 85, 92 68 C 87 58, 102 48, 108 55" 
+                              fill="none" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round"/>
+
+                        <!-- Крепление часов -->
+                        <path d="M 92 72 L 92 98" stroke="#ca8a04" stroke-width="7" stroke-linecap="round"/>
+                        <path d="M 92 72 L 92 98" stroke="#1c1917" stroke-width="2"/>
+
+                        <!-- Ореол тиканья вокруг часов -->
+                        <g stroke="#57534e" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="2,5">
+                            <circle cx="92" cy="142" r="52" fill="none"/>
+                            <circle cx="92" cy="142" r="60" fill="none"/>
+                        </g>
+
+                        <!-- Циферблат уличных часов -->
+                        <circle cx="92" cy="142" r="44" fill="#ca8a04" stroke="#1c1917" stroke-width="3"/>
+                        <circle cx="92" cy="142" r="37" fill="#fef08a" stroke="#1c1917" stroke-width="2"/>
+                        <!-- Цифры на часах -->
+                        <text x="92" y="116" text-anchor="middle" font-size="11" font-weight="bold" fill="#1c1917">12</text>
+                        <text x="108" y="120" text-anchor="middle" font-size="10" font-weight="bold" fill="#1c1917">1</text>
+                        <text x="119" y="131" text-anchor="middle" font-size="10" font-weight="bold" fill="#1c1917">2</text>
+                        <text x="122" y="145" text-anchor="middle" font-size="11" font-weight="bold" fill="#1c1917">3</text>
+                        <text x="118" y="158" text-anchor="middle" font-size="10" font-weight="bold" fill="#1c1917">4</text>
+                        <text x="107" y="169" text-anchor="middle" font-size="10" font-weight="bold" fill="#1c1917">5</text>
+                        <text x="92" y="173" text-anchor="middle" font-size="11" font-weight="bold" fill="#1c1917">6</text>
+                        <text x="77" y="169" text-anchor="middle" font-size="10" font-weight="bold" fill="#1c1917">7</text>
+                        <text x="66" y="158" text-anchor="middle" font-size="10" font-weight="bold" fill="#1c1917">8</text>
+                        <text x="63" y="145" text-anchor="middle" font-size="11" font-weight="bold" fill="#1c1917">9</text>
+                        <text x="67" y="131" text-anchor="middle" font-size="10" font-weight="bold" fill="#1c1917">10</text>
+                        <text x="78" y="120" text-anchor="middle" font-size="10" font-weight="bold" fill="#1c1917">11</text>
+                        <!-- Стрелки часов -->
+                        <line x1="92" y1="142" x2="102" y2="126" stroke="#1c1917" stroke-width="3.5" stroke-linecap="round"/>
+                        <line x1="92" y1="142" x2="100" y2="162" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="92" cy="142" r="3.5" fill="#1c1917"/>
+
+                        <!-- Надпись "Приглашаю на свидание" в стиле открытки -->
+                        <text x="275" y="72" text-anchor="middle" class="font-handwriting" font-size="56" font-weight="bold" fill="#9d174d">Приглашаю</text>
+                        <text x="285" y="140" text-anchor="middle" class="font-handwriting" font-size="50" font-weight="bold" fill="#15803d">на свидание</text>
+
+                        <!-- Маленькие парящие сердечки рядом с котиком -->
+                        <text x="245" y="195" font-size="18" class="pulse-heart">💕</text>
+                        <text x="135" y="190" font-size="16">✨</text>
+
+                        <!-- Рыжий трогательный котик с букетом и зеленой бабочкой -->
+                        <g class="cat-character">
+                            <!-- Хвост полосатый -->
+                            <path d="M 168 278 Q 130 295 102 312 Q 112 320 135 310 Q 158 298 175 286 Z" fill="#ea580c" stroke="#1c1917" stroke-width="2.5"/>
+                            <line x1="125" y1="302" x2="132" y2="311" stroke="#1c1917" stroke-width="2.5"/>
+                            <line x1="145" y1="292" x2="151" y2="302" stroke="#1c1917" stroke-width="2.5"/>
+
+                            <!-- Лапки нижние -->
+                            <path d="M 173 280 L 166 316 Q 160 322 178 322 L 184 282 Z" fill="#f97316" stroke="#1c1917" stroke-width="2.5"/>
+                            <path d="M 205 280 L 210 316 Q 225 322 202 322 L 196 282 Z" fill="#f97316" stroke="#1c1917" stroke-width="2.5"/>
+
+                            <!-- Туловище котика -->
+                            <ellipse cx="190" cy="252" rx="28" ry="38" fill="#f97316" stroke="#1c1917" stroke-width="2.5"/>
+                            <!-- Светлый животик -->
+                            <ellipse cx="190" cy="256" rx="18" ry="26" fill="#fbbf24" opacity="0.7"/>
+
+                            <!-- Правая лапка (опущена) -->
+                            <path d="M 214 226 Q 228 248 228 272" fill="none" stroke="#f97316" stroke-width="10" stroke-linecap="round"/>
+                            <path d="M 214 226 Q 228 248 228 272" fill="none" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round"/>
+
+                            <!-- Букет цветов в левой лапке -->
+                            <g transform="translate(95, 192)">
+                                <!-- Обертка букета -->
+                                <path d="M 38 68 L 28 92 L 48 90 Z" fill="#fb923c" stroke="#1c1917" stroke-width="2"/>
+                                <path d="M 12 36 L 38 68 L 62 34 Z" fill="#fdba74" stroke="#1c1917" stroke-width="2.5" stroke-linejoin="round"/>
+                                <!-- Шапка цветов -->
+                                <circle cx="24" cy="28" r="8" fill="#fbbf24" stroke="#1c1917" stroke-width="2"/>
+                                <circle cx="38" cy="22" r="9" fill="#f59e0b" stroke="#1c1917" stroke-width="2"/>
+                                <circle cx="52" cy="28" r="8" fill="#fbbf24" stroke="#1c1917" stroke-width="2"/>
+                                <circle cx="30" cy="34" r="7" fill="#f97316" stroke="#1c1917" stroke-width="2"/>
+                                <circle cx="45" cy="34" r="7" fill="#fb7185" stroke="#1c1917" stroke-width="2"/>
+                                <circle cx="37" cy="29" r="6" fill="#fef08a" stroke="#1c1917" stroke-width="1.8"/>
+                            </g>
+
+                            <!-- Левая лапка (держит букет) -->
+                            <path d="M 166 230 Q 145 242 133 252" fill="none" stroke="#f97316" stroke-width="11" stroke-linecap="round"/>
+                            <path d="M 166 230 Q 145 242 133 252" fill="none" stroke="#1c1917" stroke-width="2.5" stroke-linecap="round"/>
+
+                            <!-- Зеленый галстук-бабочка -->
+                            <path d="M 168 218 L 212 218" stroke="#22c55e" stroke-width="5" stroke-linecap="round"/>
+                            <polygon points="175,210 190,218 175,226" fill="#4ade80" stroke="#1c1917" stroke-width="2"/>
+                            <polygon points="205,210 190,218 205,226" fill="#4ade80" stroke="#1c1917" stroke-width="2"/>
+                            <circle cx="190" cy="218" r="4.5" fill="#22c55e" stroke="#1c1917" stroke-width="2"/>
+
+                            <!-- Голова котика -->
+                            <path d="M 162 195 L 146 184 L 166 182 Q 190 165 214 182 L 234 184 L 218 195 Q 224 218 190 218 Q 156 218 162 195 Z" 
+                                  fill="#f97316" stroke="#1c1917" stroke-width="2.5" stroke-linejoin="round"/>
+
+                            <!-- Большие влюбленно-волнующиеся глазки (смотрят на часы и на неё) -->
+                            <ellipse cx="179" cy="183" rx="9" ry="11" fill="#ffffff" stroke="#1c1917" stroke-width="2.2"/>
+                            <ellipse cx="201" cy="183" rx="9" ry="11" fill="#ffffff" stroke="#1c1917" stroke-width="2.2"/>
+                            <circle cx="177" cy="181" r="3.5" fill="#1c1917"/>
+                            <circle cx="199" cy="181" r="3.5" fill="#1c1917"/>
+                            <circle cx="175" cy="179" r="1.2" fill="#ffffff"/>
+                            <circle cx="197" cy="179" r="1.2" fill="#ffffff"/>
+
+                            <!-- Красный носик -->
+                            <ellipse cx="187" cy="194" rx="7" ry="4.5" fill="#dc2626" stroke="#1c1917" stroke-width="2"/>
+
+                            <!-- Усики -->
+                            <line x1="162" y1="196" x2="144" y2="193" stroke="#1c1917" stroke-width="1.8" stroke-linecap="round"/>
+                            <line x1="162" y1="200" x2="143" y2="202" stroke="#1c1917" stroke-width="1.8" stroke-linecap="round"/>
+                            <line x1="164" y1="204" x2="147" y2="210" stroke="#1c1917" stroke-width="1.8" stroke-linecap="round"/>
+
+                            <line x1="216" y1="196" x2="234" y2="193" stroke="#1c1917" stroke-width="1.8" stroke-linecap="round"/>
+                            <line x1="216" y1="200" x2="235" y2="202" stroke="#1c1917" stroke-width="1.8" stroke-linecap="round"/>
+                            <line x1="214" y1="204" x2="231" y2="210" stroke="#1c1917" stroke-width="1.8" stroke-linecap="round"/>
+
+                            <!-- Скромная улыбочка -->
+                            <path d="M 183 203 Q 190 207 196 203" fill="none" stroke="#1c1917" stroke-width="2" stroke-linecap="round"/>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Текст приглашения -->
+            <div class="space-y-2.5 max-w-lg mx-auto">
+                <div class="inline-flex items-center gap-1.5 bg-pink-100/90 text-pink-800 px-3.5 py-1 rounded-full text-xs font-bold tracking-wide uppercase">
+                    <span>🌸</span> Время для нас двоих <span>🌸</span>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-rose-900 leading-snug">
+                    Давай проведём волшебный день вместе? 🥰
+                </h1>
+                <p class="text-sm sm:text-base text-stone-600 leading-relaxed">
+                    Я очень хочу подарить тебе тёплые эмоции и уютный вечер (или утро!). Выбери событие, которое откликается твоему сердечку больше всего — или даже несколько! ✨💖
+                </p>
+            </div>
+        </section>
+
+        <!-- Заголовок выбора -->
+        <div class="flex items-center justify-between mb-4 px-2">
+            <h2 class="text-lg sm:text-xl font-bold text-rose-900 flex items-center gap-2">
+                <span>🎭</span> Куда мы с тобой отправимся?
+            </h2>
+            <span class="text-xs font-semibold text-pink-700 bg-pink-100/80 px-3 py-1 rounded-full">
+                Нажми на карточку 💕
+            </span>
+        </div>
+
+        <!-- Карточки событий -->
+        <div class="space-y-4 mb-8" id="events-list">
+
+            <!-- Событие 1: Маленький принц -->
+            <div id="card-prince" onclick="toggleEvent('prince')" class="event-card glass-card rounded-3xl p-5 cursor-pointer relative overflow-hidden">
+                <div class="flex items-start gap-4">
+                    <!-- Иконка -->
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-rose-100 to-amber-100 flex items-center justify-center text-3xl shrink-0 shadow-inner border border-rose-200/60">
+                        👑🌹
+                    </div>
+
+                    <!-- Описание -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                            <span class="text-xs font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
+                                Театр юного зрителя (ТЮЗ)
+                            </span>
+                            <!-- Индикатор выбора -->
+                            <div id="check-prince" class="w-7 h-7 rounded-full border-2 border-pink-300 flex items-center justify-center text-sm transition-all bg-white">
+                                <span class="opacity-0 text-white font-bold">💗</span>
+                            </div>
+                        </div>
+
+                        <h3 class="text-lg sm:text-xl font-bold text-stone-800 mb-1">
+                            Спектакль «Маленький принц»
+                        </h3>
+
+                        <p class="text-xs sm:text-sm text-stone-600 mb-3 leading-relaxed">
+                            Трогательная, светлая и глубокая история о любви, дружбе и о том, что «зорко одно лишь сердце» ✨🦊🌹
+                        </p>
+
+                        <!-- Дата и время -->
+                        <div class="flex flex-wrap items-center gap-2 text-xs sm:text-sm font-semibold">
+                            <div class="inline-flex items-center gap-1.5 bg-amber-50/90 text-amber-900 px-3 py-1.5 rounded-xl border border-amber-200/80">
+                                <span>📅</span>
+                                <span>14.11.26 (суббота)</span>
+                            </div>
+                            <div class="inline-flex items-center gap-1.5 bg-pink-50/90 text-pink-900 px-3 py-1.5 rounded-xl border border-pink-200/80">
+                                <span>🕔</span>
+                                <span>в 17:00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Событие 2: Летучий корабль -->
+            <div id="card-ship" onclick="toggleEvent('ship')" class="event-card glass-card rounded-3xl p-5 cursor-pointer relative overflow-hidden">
+                <div class="flex items-start gap-4">
+                    <!-- Иконка -->
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-sky-100 to-pink-100 flex items-center justify-center text-3xl shrink-0 shadow-inner border border-sky-200/60">
+                        ⛵🎶
+                    </div>
+
+                    <!-- Описание -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                            <span class="text-xs font-bold uppercase tracking-wider text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">
+                                Музыкальный театр
+                            </span>
+                            <div id="check-ship" class="w-7 h-7 rounded-full border-2 border-pink-300 flex items-center justify-center text-sm transition-all bg-white">
+                                <span class="opacity-0 text-white font-bold">💗</span>
+                            </div>
+                        </div>
+
+                        <h3 class="text-lg sm:text-xl font-bold text-stone-800 mb-1">
+                            Мюзикл «Летучий корабль»
+                        </h3>
+
+                        <p class="text-xs sm:text-sm text-stone-600 mb-3 leading-relaxed">
+                            Яркая, добрая музыкальная сказка о настоящей любви, любимые с детства песни и чудесное воскресное настроение ☀️🎵
+                        </p>
+
+                        <!-- Дата и время -->
+                        <div class="flex flex-wrap items-center gap-2 text-xs sm:text-sm font-semibold">
+                            <div class="inline-flex items-center gap-1.5 bg-amber-50/90 text-amber-900 px-3 py-1.5 rounded-xl border border-amber-200/80">
+                                <span>📅</span>
+                                <span>01.11.26 (воскресенье)</span>
+                            </div>
+                            <div class="inline-flex items-center gap-1.5 bg-pink-50/90 text-pink-900 px-3 py-1.5 rounded-xl border border-pink-200/80">
+                                <span>🕚</span>
+                                <span>в 11:00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Событие 3: История одной песчинки (Планетарий) -->
+            <div id="card-planetarium" onclick="toggleEvent('planetarium')" class="event-card glass-card rounded-3xl p-5 cursor-pointer relative overflow-hidden">
+                <div class="flex items-start gap-4">
+                    <!-- Иконка -->
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center text-3xl shrink-0 shadow-inner border border-indigo-200/60">
+                        🌌🪐
+                    </div>
+
+                    <!-- Описание -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                            <span class="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                                Планетарий
+                            </span>
+                            <div id="check-planetarium" class="w-7 h-7 rounded-full border-2 border-pink-300 flex items-center justify-center text-sm transition-all bg-white">
+                                <span class="opacity-0 text-white font-bold">💗</span>
+                            </div>
+                        </div>
+
+                        <h3 class="text-lg sm:text-xl font-bold text-stone-800 mb-1">
+                            «История одной песчинки»
+                        </h3>
+
+                        <p class="text-xs sm:text-sm text-stone-600 mb-3 leading-relaxed">
+                            Романтическое путешествие под куполом звёздного неба — держаться за руки и смотреть на Вселенную 🌠✨
+                        </p>
+
+                        <!-- Выбор удобной даты для Планетария -->
+                        <div class="mt-2" onclick="event.stopPropagation()">
+                            <p class="text-xs font-bold text-rose-700 mb-2">Выбери удобный день и время:</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <button type="button" id="slot-oct25" onclick="selectPlanetariumSlot('25.10.26 (вс) в 10:00')" 
+                                        class="planet-slot text-left px-3 py-2 rounded-xl border-2 border-pink-400 bg-pink-50/90 text-pink-900 text-xs sm:text-sm font-semibold transition flex items-center justify-between">
+                                    <span>📅 25.10.26 в 10:00</span>
+                                    <span class="slot-dot text-pink-600">●</span>
+                                </button>
+                                <button type="button" id="slot-oct29" onclick="selectPlanetariumSlot('29.10.26 (чт) в 12:00')" 
+                                        class="planet-slot text-left px-3 py-2 rounded-xl border-2 border-stone-200 bg-white/80 text-stone-700 text-xs sm:text-sm font-semibold transition flex items-center justify-between hover:border-pink-300">
+                                    <span>📅 29.10.26 в 12:00</span>
+                                    <span class="slot-dot text-stone-300">○</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Дополнительное пожелание и имя/подпись -->
+        <section class="glass-card rounded-3xl p-5 sm:p-6 mb-8">
+            <h3 class="text-base sm:text-lg font-bold text-rose-900 mb-3 flex items-center gap-2">
+                <span>🧁</span> Твои пожелания к нашему свиданию:
+            </h3>
+            
+            <!-- Быстрые милые теги-дополнения -->
+            <div class="flex flex-wrap gap-2 mb-4">
+                <button type="button" onclick="addQuickWish('Пойдём потом пить вкусный кофе с десертом! ☕🍰')" class="text-xs bg-pink-50 hover:bg-pink-100 text-pink-800 border border-pink-200 px-3 py-1.5 rounded-full transition">
+                    + Попить кофе после ☕🍰
+                </button>
+                <button type="button" onclick="addQuickWish('Давай много гулять и фотографироваться! 📸💕')" class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 px-3 py-1.5 rounded-full transition">
+                    + Погулять вместе 🍂✨
+                </button>
+                <button type="button" onclick="addQuickWish('Хочу крепкие обнимашки при встрече! 🤗💖')" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 px-3 py-1.5 rounded-full transition">
+                    + Крепкие обнимашки 🤗💖
+                </button>
+            </div>
+
+            <textarea id="wish-comment" rows="2" placeholder="Напиши сюда любое пожелание или милую записочку для меня... 💌" 
+                      class="w-full rounded-2xl border-2 border-pink-100 bg-white/90 px-4 py-3 text-sm text-stone-700 focus:outline-none focus:border-pink-400 transition resize-none"></textarea>
+        </section>
+
+        <!-- Подсказка, если ничего не выбрано -->
+        <div id="validation-msg" class="hidden mb-4 p-3.5 rounded-2xl bg-rose-100 border border-rose-300 text-rose-800 text-center text-sm font-semibold animate-bounce">
+            Выбери хотя бы одно событие выше, нажав на карточку 🥰👆
+        </div>
+
+        <!-- Главная кнопка согласия -->
+        <div class="text-center">
+            <button id="submit-btn" onclick="confirmDateChoice()" 
+                    class="w-full sm:w-auto min-w-[290px] bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 hover:from-pink-600 hover:via-rose-600 hover:to-amber-600 text-white font-bold text-lg py-4 px-8 rounded-full shadow-lg shadow-pink-500/30 hover:shadow-xl hover:shadow-pink-500/40 transform hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2.5 mx-auto">
+                <span>Я согласна! Пойдём</span>
+                <span class="text-xl pulse-heart">💕</span>
+            </button>
+            <p class="text-xs text-stone-500 mt-2.5">
+                После нажатия появится ваш романтический билетик и кнопка отправки ответа 💌
+            </p>
+        </div>
+
+        <!-- Секция готового Билетика и Отправки ответа (появляется после выбора) -->
+        <section id="result-section" class="hidden mt-10 scroll-mt-6">
+            <div class="ticket-card rounded-3xl p-6 sm:p-8 shadow-xl mb-6">
+                <div class="text-center border-b-2 border-dashed border-pink-200 pb-4 mb-5">
+                    <div class="inline-block bg-rose-100 text-rose-700 text-xs font-bold px-3 py-1 rounded-full mb-2">
+                        🎟️ ОФИЦИАЛЬНЫЙ БИЛЕТИК НА СВИДАНИЕ 🎟️
+                    </div>
+                    <h2 class="text-2xl font-bold text-rose-900">Ура! Свидание назначено! 🥰💖</h2>
+                    <p class="text-xs text-stone-500 mt-1">Статус: Подтверждено с улыбкой и нежностью ✨</p>
+                </div>
+
+                <!-- Выбранные события внутри билета -->
+                <div class="space-y-3 mb-5" id="ticket-events-summary"></div>
+
+                <!-- Пожелание внутри билета -->
+                <div id="ticket-wish-box" class="hidden bg-pink-50/80 rounded-2xl p-3.5 border border-pink-200/70 mb-5 text-sm text-rose-900">
+                    <span class="font-bold">💌 Записочка:</span> <span id="ticket-wish-text" class="italic"></span>
+                </div>
+
+                <!-- Статус облачного сохранения -->
+                <div id="cloud-save-badge" class="text-center text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl py-2 px-3 mb-5 font-semibold">
+                    ✨ Ответ автоматически сохранён! Теперь отправь его в один клик:
+                </div>
+
+                <!-- Кнопки быстрой отправки ответа -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <a id="tg-share-link" href="#" target="_blank" rel="noopener noreferrer"
+                       class="bg-[#2AABEE] hover:bg-[#229ED9] text-white font-bold py-3.5 px-5 rounded-2xl shadow-md transition flex items-center justify-center gap-2 text-sm">
+                        <span>✈️</span>
+                        <span>Отправить ответ в Telegram</span>
+                    </a>
+                    <a id="wa-share-link" href="#" target="_blank" rel="noopener noreferrer"
+                       class="bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold py-3.5 px-5 rounded-2xl shadow-md transition flex items-center justify-center gap-2 text-sm">
+                        <span>💬</span>
+                        <span>Отправить в WhatsApp</span>
+                    </a>
+                </div>
+
+                <button onclick="copyResponseText()" id="copy-btn"
+                        class="mt-3 w-full bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 font-bold py-3 px-5 rounded-2xl transition flex items-center justify-center gap-2 text-sm">
+                    <span>📋</span>
+                    <span id="copy-btn-text">Скопировать красивый текст ответа</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Нижняя панель для тебя (просмотр полученных ответов в реальном времени) -->
+        <section class="mt-12 pt-6 border-t border-pink-200/70">
+            <div class="flex items-center justify-between">
+                <button onclick="toggleResponsesPanel()" class="text-xs font-semibold text-rose-800/70 hover:text-rose-900 flex items-center gap-1.5 transition">
+                    <span>👀</span>
+                    <span>Панель ответов (посмотреть, что она выбрала)</span>
+                    <span id="responses-count-badge" class="bg-pink-200 text-pink-900 px-2 py-0.5 rounded-full text-[11px]">0</span>
+                </button>
+            </div>
+
+            <div id="responses-panel" class="hidden mt-4 glass-card rounded-3xl p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="font-bold text-sm text-rose-900 flex items-center gap-1.5">
+                        <span>📬</span> Сохранённые ответы в реальном времени:
+                    </h4>
+                    <span class="text-[11px] text-stone-500">Обновляется автоматически</span>
+                </div>
+                <div id="saved-responses-list" class="space-y-2.5 text-xs text-stone-700">
+                    <p class="text-stone-400 italic py-2">Пока ответов нет — ждём её заветного выбора! 💕</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Модальное окно настройки фото открытки / фона -->
+    <div id="photo-modal" class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-pink-100">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-lg text-rose-900 flex items-center gap-2">
+                    <span>🖼️</span> Настройка картинки и фона
+                </h3>
+                <button onclick="togglePhotoModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-600 font-bold">
+                    ✕
+                </button>
+            </div>
+
+            <p class="text-xs text-stone-600 mb-4 leading-relaxed">
+                Сейчас в приглашении уже стоит нарисованная открытка с рыжим котиком и часами по мотивам вашего фото. Вы также можете загрузить свой файл картинки прямо с телефона/компьютера или вставить ссылку:
+            </p>
+
+            <!-- Загрузка файла с устройства -->
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-stone-700 mb-1.5">1. Выбрать фото с устройства (в открытку и на фон):</label>
+                <input type="file" id="photo-file-input" accept="image/*" onchange="handleFileUpload(event)"
+                       class="block w-full text-xs text-stone-600 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-pink-100 file:text-pink-800 hover:file:bg-pink-200 cursor-pointer"/>
+            </div>
+
+            <!-- Вставка прямой ссылки на картинку -->
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-stone-700 mb-1.5">2. Или вставить ссылку на картинку (URL):</label>
+                <div class="flex gap-2">
+                    <input type="url" id="photo-url-input" placeholder="https://..." 
+                           class="flex-1 rounded-xl border border-stone-200 px-3 py-2 text-xs focus:outline-none focus:border-pink-400">
+                    <button onclick="applyUrlImage()" class="bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition">
+                        Применить
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-3 border-t border-stone-100">
+                <button onclick="resetToIllustratedCat()" class="text-xs text-rose-600 hover:underline font-semibold">
+                    Вернуть рисованного котика 🐱
+                </button>
+                <button onclick="togglePhotoModal()" class="bg-stone-800 text-white text-xs font-bold px-5 py-2.5 rounded-xl">
+                    Готово
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Логика приложения и облачное сохранение ответа (Firebase Firestore) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Данные о событиях
+        const EVENTS_DATA = {
+            prince: {
+                id: 'prince',
+                icon: '👑🌹',
+                title: 'Спектакль «Маленький принц»',
+                place: 'Театр юного зрителя (ТЮЗ)',
+                getDateTime: () => '14.11.26 (суббота) в 17:00'
+            },
+            ship: {
+                id: 'ship',
+                icon: '⛵🎶',
+                title: 'Мюзикл «Летучий корабль»',
+                place: 'Музыкальный театр',
+                getDateTime: () => '01.11.26 (воскресенье) в 11:00'
+            },
+            planetarium: {
+                id: 'planetarium',
+                icon: '🌌🪐',
+                title: '«История одной песчинки»',
+                place: 'Планетарий',
+                getDateTime: () => window.selectedPlanetariumSlot
+            }
+        };
+
+        // Состояние выбора
+        window.selectedEvents = new Set();
+        window.selectedPlanetariumSlot = '25.10.26 (вс) в 10:00';
+        window.lastFormattedMessage = '';
+
+        // 1. Создание парящих сердечек на фоне
+        function initFloatingHearts() {
+            const container = document.getElementById('floating-container');
+            const symbols = ['💕', '💖', '✨', '🌸', '💌', '🥰', '🌹', '⭐'];
+            for (let i = 0; i < 18; i++) {
+                const el = document.createElement('div');
+                el.className = 'floating-item';
+                el.textContent = symbols[i % symbols.length];
+                el.style.left = `${Math.random() * 96}%`;
+                el.style.fontSize = `${16 + Math.random() * 16}px`;
+                el.style.animationDuration = `${11 + Math.random() * 12}s`;
+                el.style.animationDelay = `${Math.random() * 8}s`;
+                container.appendChild(el);
+            }
+        }
+        initFloatingHearts();
+
+        // 2. Переключение выбора карточки события
+        window.toggleEvent = function(eventId) {
+            const card = document.getElementById(`card-${eventId}`);
+            const check = document.getElementById(`check-${eventId}`);
+            const checkSpan = check.querySelector('span');
+
+            if (window.selectedEvents.has(eventId)) {
+                window.selectedEvents.delete(eventId);
+                card.classList.remove('selected');
+                check.classList.remove('bg-pink-500', 'border-pink-500');
+                check.classList.add('bg-white', 'border-pink-300');
+                checkSpan.classList.add('opacity-0');
+            } else {
+                window.selectedEvents.add(eventId);
+                card.classList.add('selected');
+                check.classList.remove('bg-white', 'border-pink-300');
+                check.classList.add('bg-pink-500', 'border-pink-500');
+                checkSpan.classList.remove('opacity-0');
+            }
+
+            document.getElementById('validation-msg').classList.add('hidden');
+        };
+
+        // 3. Выбор даты и времени для Планетария
+        window.selectPlanetariumSlot = function(slotText) {
+            window.selectedPlanetariumSlot = slotText;
+            const btn25 = document.getElementById('slot-oct25');
+            const btn29 = document.getElementById('slot-oct29');
+
+            const is25 = slotText.includes('25.10');
+            if (is25) {
+                btn25.className = 'planet-slot text-left px-3 py-2 rounded-xl border-2 border-pink-400 bg-pink-50/90 text-pink-900 text-xs sm:text-sm font-semibold transition flex items-center justify-between';
+                btn25.querySelector('.slot-dot').textContent = '●';
+                btn25.querySelector('.slot-dot').className = 'slot-dot text-pink-600';
+
+                btn29.className = 'planet-slot text-left px-3 py-2 rounded-xl border-2 border-stone-200 bg-white/80 text-stone-700 text-xs sm:text-sm font-semibold transition flex items-center justify-between hover:border-pink-300';
+                btn29.querySelector('.slot-dot').textContent = '○';
+                btn29.querySelector('.slot-dot').className = 'slot-dot text-stone-300';
+            } else {
+                btn29.className = 'planet-slot text-left px-3 py-2 rounded-xl border-2 border-pink-400 bg-pink-50/90 text-pink-900 text-xs sm:text-sm font-semibold transition flex items-center justify-between';
+                btn29.querySelector('.slot-dot').textContent = '●';
+                btn29.querySelector('.slot-dot').className = 'slot-dot text-pink-600';
+
+                btn25.className = 'planet-slot text-left px-3 py-2 rounded-xl border-2 border-stone-200 bg-white/80 text-stone-700 text-xs sm:text-sm font-semibold transition flex items-center justify-between hover:border-pink-300';
+                btn25.querySelector('.slot-dot').textContent = '○';
+                btn25.querySelector('.slot-dot').className = 'slot-dot text-stone-300';
+            }
+
+            // Если карточка планетария ещё не была выбрана — автоматически отмечаем её
+            if (!window.selectedEvents.has('planetarium')) {
+                window.toggleEvent('planetarium');
+            }
+        };
+
+        // 4. Добавление быстрого пожелания в поле комментария
+        window.addQuickWish = function(text) {
+            const textarea = document.getElementById('wish-comment');
+            if (textarea.value.trim().length > 0) {
+                if (!textarea.value.includes(text)) {
+                    textarea.value = textarea.value.trim() + ' ' + text;
+                }
+            } else {
+                textarea.value = text;
+            }
+        };
+
+        // 5. Праздничный салют из сердечек при нажатии "Я согласна!"
+        function launchHeartConfetti() {
+            const emojis = ['💖', '💕', '💘', '🥰', '✨', '🌸', '🎉'];
+            for (let i = 0; i < 36; i++) {
+                const heart = document.createElement('div');
+                heart.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                heart.style.position = 'fixed';
+                heart.style.left = `${50 + (Math.random() - 0.5) * 60}%`;
+                heart.style.top = '65%';
+                heart.style.fontSize = `${20 + Math.random() * 18}px`;
+                heart.style.pointerEvents = 'none';
+                heart.style.zIndex = '100';
+                heart.style.transition = 'all 1.4s cubic-bezier(0.16, 1, 0.3, 1)';
+                document.body.appendChild(heart);
+
+                requestAnimationFrame(() => {
+                    const angle = (Math.random() - 0.5) * 320;
+                    const lift = -180 - Math.random() * 280;
+                    heart.style.transform = `translate(${angle}px, ${lift}px) rotate(${(Math.random() - 0.5) * 180}deg) scale(1.2)`;
+                    heart.style.opacity = '0';
+                });
+
+                setTimeout(() => heart.remove(), 1500);
+            }
+        }
+
+        // 6. Подтверждение выбора, генерация билетика и сохранение в облако
+        window.confirmDateChoice = async function() {
+            if (window.selectedEvents.size === 0) {
+                const msg = document.getElementById('validation-msg');
+                msg.classList.remove('hidden');
+                msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            launchHeartConfetti();
+
+            const chosenItems = Array.from(window.selectedEvents).map(id => {
+                const ev = EVENTS_DATA[id];
+                return {
+                    id: ev.id,
+                    icon: ev.icon,
+                    title: ev.title,
+                    place: ev.place,
+                    dateTime: ev.getDateTime()
+                };
+            });
+
+            const wishText = document.getElementById('wish-comment').value.trim();
+
+            // Отрисовка внутри билетика
+            const summaryContainer = document.getElementById('ticket-events-summary');
+            summaryContainer.innerHTML = chosenItems.map(item => `
+                <div class="flex items-center gap-3.5 bg-rose-50/70 border border-pink-200/80 rounded-2xl p-3.5">
+                    <div class="text-2xl">${item.icon}</div>
+                    <div class="flex-1">
+                        <div class="font-bold text-stone-800 text-sm sm:text-base">${item.title}</div>
+                        <div class="text-xs text-rose-700 font-semibold">${item.place} • ${item.dateTime}</div>
+                    </div>
+                    <div class="text-lg">✅</div>
+                </div>
+            `).join('');
+
+            const wishBox = document.getElementById('ticket-wish-box');
+            if (wishText) {
+                document.getElementById('ticket-wish-text').textContent = wishText;
+                wishBox.classList.remove('hidden');
+            } else {
+                wishBox.classList.add('hidden');
+            }
+
+            // Формирование красивого текста для Telegram / WhatsApp / буфера обмена
+            const lines = [
+                '💌 Я с радостью принимаю твоё приглашение на свидание! 🥰💖',
+                '',
+                '✨ Мой выбор:'
+            ];
+            chosenItems.forEach(item => {
+                lines.push(`${item.icon} ${item.title} — ${item.place} (${item.dateTime})`);
+            });
+            if (wishText) {
+                lines.push('');
+                lines.push(`🧁 Пожелание: ${wishText}`);
+            }
+            lines.push('');
+            lines.push('Жду нашей встречи! 💕');
+
+            window.lastFormattedMessage = lines.join('\n');
+            const encodedText = encodeURIComponent(window.lastFormattedMessage);
+
+            document.getElementById('tg-share-link').href = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodedText}`;
+            document.getElementById('wa-share-link').href = `https://wa.me/?text=${encodedText}`;
+
+            const resultSection = document.getElementById('result-section');
+            resultSection.classList.remove('hidden');
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // Сохранение ответа в Firestore, чтобы отправитель сразу увидел его в панели
+            await saveResponseToCloud(chosenItems, wishText);
+        };
+
+        // 7. Копирование текста ответа
+        window.copyResponseText = function() {
+            if (!window.lastFormattedMessage) return;
+            const tempInput = document.createElement('textarea');
+            tempInput.value = window.lastFormattedMessage;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            const btnText = document.getElementById('copy-btn-text');
+            btnText.textContent = 'Скопировано в буфер обмена! 💖';
+            setTimeout(() => {
+                btnText.textContent = 'Скопировать красивый текст ответа';
+            }, 3000);
+        };
+
+        // 8. Управление модальным окном фото/фона
+        window.togglePhotoModal = function() {
+            const modal = document.getElementById('photo-modal');
+            modal.classList.toggle('hidden');
+        };
+
+        window.applyImageSource = function(srcData) {
+            if (!srcData) return;
+            const postcardImg = document.getElementById('user-postcard-img');
+            const illustrated = document.getElementById('illustrated-postcard');
+            const bgLayer = document.getElementById('custom-bg-layer');
+
+            postcardImg.src = srcData;
+            postcardImg.classList.remove('hidden');
+            illustrated.classList.add('hidden');
+            bgLayer.style.backgroundImage = `url('${srcData}')`;
+        };
+
+        window.handleFileUpload = function(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                window.applyImageSource(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.applyUrlImage = function() {
+            const url = document.getElementById('photo-url-input').value.trim();
+            if (url) {
+                window.applyImageSource(url);
+                window.togglePhotoModal();
+            }
+        };
+
+        window.resetToIllustratedCat = function() {
+            const postcardImg = document.getElementById('user-postcard-img');
+            const illustrated = document.getElementById('illustrated-postcard');
+            const bgLayer = document.getElementById('custom-bg-layer');
+
+            postcardImg.classList.add('hidden');
+            illustrated.classList.remove('hidden');
+            bgLayer.style.backgroundImage = 'none';
+        };
+
+        window.toggleResponsesPanel = function() {
+            const panel = document.getElementById('responses-panel');
+            panel.classList.toggle('hidden');
+        };
+
+        // 9. Подключение Firebase для мгновенного получения ответа
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'date-invite-app';
+
+        async function initCloudSync() {
+            try {
+                if (typeof __firebase_config === 'undefined' || !__firebase_config) return;
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    currentUser = user;
+                    if (user) {
+                        listenForResponses();
+                    }
+                });
+            } catch (err) {
+                console.warn('Cloud sync fallback mode:', err);
+            }
+        }
+
+        async function saveResponseToCloud(chosenItems, wishText) {
+            if (!db || !currentUser) return;
+            try {
+                const responsesRef = collection(db, 'artifacts', appId, 'public', 'data', 'date_responses');
+                await addDoc(responsesRef, {
+                    choicesJson: JSON.stringify(chosenItems),
+                    wish: wishText || '',
+                    createdAt: new Date().toLocaleString('ru-RU'),
+                    timestamp: Date.now()
+                });
+            } catch (e) {
+                console.warn('Could not save response to cloud:', e);
+            }
+        }
+
+        function listenForResponses() {
+            if (!db || !currentUser) return;
+            const responsesRef = collection(db, 'artifacts', appId, 'public', 'data', 'date_responses');
+            onSnapshot(responsesRef, (snapshot) => {
+                const items = [];
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    let parsedChoices = [];
+                    try {
+                        parsedChoices = JSON.parse(data.choicesJson || '[]');
+                    } catch (e) {}
+                    items.push({
+                        id: docSnap.id,
+                        choices: parsedChoices,
+                        wish: data.wish,
+                        createdAt: data.createdAt,
+                        timestamp: data.timestamp || 0
+                    });
+                });
+
+                items.sort((a, b) => b.timestamp - a.timestamp);
+
+                const badge = document.getElementById('responses-count-badge');
+                badge.textContent = items.length;
+
+                const listEl = document.getElementById('saved-responses-list');
+                if (items.length === 0) {
+                    listEl.innerHTML = `<p class="text-stone-400 italic py-2">Пока ответов нет — ждём её заветного выбора! 💕</p>`;
+                    return;
+                }
+
+                listEl.innerHTML = items.map(entry => `
+                    <div class="bg-white/90 border border-pink-200 rounded-2xl p-3.5 shadow-sm">
+                        <div class="flex justify-between items-center text-[11px] text-rose-700 font-bold mb-1.5">
+                            <span>💖 Получен ответ!</span>
+                            <span>${entry.createdAt || ''}</span>
+                        </div>
+                        <div class="space-y-1 mb-1.5">
+                            ${entry.choices.map(c => `
+                                <div class="text-xs font-semibold text-stone-800">
+                                    ${c.icon} ${c.title} — <span class="text-rose-700">${c.place} (${c.dateTime})</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${entry.wish ? `<div class="text-xs text-stone-600 bg-pink-50/70 rounded-xl px-2.5 py-1.5 mt-1">💌 «${entry.wish}»</div>` : ''}
+                    </div>
+                `).join('');
+            }, (error) => {
+                console.warn('Snapshot listener error:', error);
+            });
+        }
+
+        initCloudSync();
+    </script>
+</body>
+</html>
